@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LibAnalytics Pro | Filterable Dashboard</title>
+    <!-- Google Fonts + Font Awesome 6 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e8edf5 0%, #dce3ec 100%);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* ---------- LOGIN PAGE (NEAT) ---------- */
+        .login-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 2rem;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(115deg, #1e2f4b 0%, #15273f 100%);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .login-header .icon-circle {
+            background: rgba(255, 255, 255, 0.15);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 35px;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+        }
+
+        .login-header h2 {
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+
+        .login-body {
+            padding: 2rem;
+        }
+
+        .demo-creds {
+            background: #f0f6fe;
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 1.8rem;
+            border-left: 4px solid #2c5f8a;
+            font-size: 0.8rem;
+        }
+
+        .demo-creds span {
+            font-family: monospace;
+            background: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .input-field {
+            margin-bottom: 1.2rem;
+        }
+
+        .input-field label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            color: #1e2f4b;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: #2c5f8a;
+        }
+
+        .login-btn {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 0.9rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .login-btn:hover {
+            background: #0e2a47;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 0.6rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* ---------- DASHBOARD (WITH FILTERS) ---------- */
+        .dashboard-container {
+            display: none;
+            background: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        .dash-nav {
+            background: white;
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo h3 {
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e3a5f, #2b4f7c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logout-dash {
+            background: #f0f4fa;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            cursor: pointer;
+        }
+
+        /* FILTER BAR */
+        .filter-bar {
+            background: white;
+            margin: 1.5rem 2rem 0 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            border: 1px solid #eef3fc;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .filter-group label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #5f7f9e;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border-radius: 1rem;
+            border: 1px solid #dce5f0;
+            background: #fefefe;
+            font-family: 'Inter', monospace;
+            font-size: 0.85rem;
+        }
+
+        .filter-group button {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+        }
+
+        .reset-filter {
+            background: #eef2f8 !important;
+            color: #2c3e66 !important;
+        }
+
+        /* stats grid */
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            padding: 1.5rem 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1rem 1.5rem;
+            flex: 1;
+            min-width: 150px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            border: 1px solid #eef3fc;
+        }
+
+        .metric-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e2f4b;
+        }
+
+        /* charts */
+        .charts-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+            padding: 0 2rem 1.5rem 2rem;
+        }
+
+        .chart-panel {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+        }
+
+        canvas {
+            max-height: 260px;
+            width: 100%;
+        }
+
+        /* table */
+        .table-card {
+            background: white;
+            border-radius: 1.5rem;
+            margin: 0 2rem 2rem 2rem;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            padding: 1rem 1.5rem;
+            font-weight: 700;
+            border-bottom: 1px solid #edf2f9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #edf2f9;
+        }
+
+        .badge-overdue {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.7rem;
+            color: #6c86a3;
+        }
+
+        @media (max-width: 700px) {
+            .filter-bar { margin: 1rem; flex-direction: column; }
+            .stats-grid { padding: 1rem; }
+            .charts-area { padding: 0 1rem 1rem; grid-template-columns: 1fr; }
+            .table-card { margin: 0 1rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginWrapper" class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="icon-circle"><i class="fas fa-chart-line fa-2x"></i></div>
+            <h2>LibAnalytics Pro</h2>
+            <p>Filterable Intelligence Dashboard</p>
+        </div>
+        <div class="login-body">
+            <div class="demo-creds">
+                <p><i class="fas fa-key"></i> <strong>Demo Access</strong></p>
+                <p>Member ID: <span>librarian@libanalytics.com</span> or <span>MEM0200</span></p>
+                <p>Password: <span>lib2025</span></p>
+            </div>
+            <div class="input-field">
+                <label><i class="fas fa-id-card"></i> Member ID / Email</label>
+                <input type="text" id="loginEmail" placeholder="librarian@libanalytics.com" autocomplete="off">
+            </div>
+            <div class="input-field">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••">
+            </div>
+            <button id="loginMainBtn" class="login-btn"><i class="fas fa-arrow-right"></i> Access Dashboard</button>
+            <div id="loginErrorMsg" class="error-message">Invalid credentials. Use demo password: lib2025</div>
+        </div>
+    </div>
+</div>
+
+<!-- DASHBOARD WITH FILTERS -->
+<div id="dashboardApp" class="dashboard-container">
+    <div class="dash-nav">
+        <div class="logo"><h3><i class="fas fa-sliders-h"></i> LibMetrics | Filter View</h3></div>
+        <div class="user-badge">
+            <span id="activeMemberName"><i class="fas fa-user-check"></i> <strong>Library Director</strong></span>
+            <button id="logoutDashboardBtn" class="logout-dash"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- FILTER SECTION -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label><i class="fas fa-user"></i> Member ID Filter</label>
+            <select id="filterMemberId">
+                <option value="all">All Members</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-book"></i> Book ID Filter</label>
+            <select id="filterBookId">
+                <option value="all">All Books</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-hourglass-half"></i> Overdue Status</label>
+            <select id="filterStatus">
+                <option value="all">All Status</option>
+                <option value="overdue">Overdue (>0 days)</option>
+                <option value="ontime">On Time (0 days)</option>
+                <option value="critical">Critical (>20 days)</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-search"></i> Apply</label>
+            <button id="applyFilterBtn"><i class="fas fa-filter"></i> Apply Filters</button>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-undo-alt"></i> Reset</label>
+            <button id="resetFilterBtn" class="reset-filter"><i class="fas fa-sync-alt"></i> Reset</button>
+        </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="stats-grid">
+        <div class="metric-card"><div class="metric-title"><i class="fas fa-users"></i> ACTIVE MEMBERS</div><div class="metric-number" id="totalMembersCount">0</div></div>
+        <div class="metric-card"><div class="metric-title"><i class="fas fa-layer-group"></i> UNIQUE BOOKS</div><div class="metric-number" id="uniqueFormatsCount">0</div></div>
+        <div class="metric-card"><div class="metric-title"><i class="fas fa-hourglass-half"></i> OVERDUE ITEMS</div><div class="metric-number" id="overdueItemsCount">0</div></div>
+        <div class="metric-card"><div class="metric-title"><i class="fas fa-chart-line"></i> AVG OVERDUE DAYS</div><div class="metric-number" id="avgOverdueDays">0d</div></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-area">
+        <div class="chart-panel"><h4><i class="fas fa-chart-line"></i> Book Format Distribution</h4><canvas id="bookFormatCanvas"></canvas><div style="font-size:0.65rem; text-align:center;">X: Book ID Series | Y: Volume</div></div>
+        <div class="chart-panel"><h4><i class="fas fa-chart-bar"></i> Days Overdue (Filtered Data)</h4><canvas id="overdueBarCanvas"></canvas></div>
+    </div>
+
+    <!-- TABLE (FILTERABLE) -->
+    <div class="table-card">
+        <div class="table-header"><i class="fas fa-list-ul"></i> 📋 Overdue Register (Live Filters)</div>
+        <div style="overflow-x: auto;">
+            <table id="overdueTable">
+                <thead><tr><th>Member ID</th><th>Book ID</th><th>Days Overdue</th><th>Status</th></tr></thead>
+                <tbody id="overdueTableBody"></tbody>
+            </table>
+        </div>
+        <div style="padding:0.7rem 1.2rem; font-size:0.7rem; color:#4f6f8f; border-top:1px solid #ecf3fa;"><i class="fas fa-chart-simple"></i> Filterable by Member, Book & Overdue status — realtime updates</div>
+    </div>
+    <footer>© LibAnalytics — Dynamic filtering | Inspired by IBM Cognos</footer>
+</div>
+
+<script>
+    // ---------- MASTER DATA (Overdue entries with diverse books + member 200) ----------
+    const masterOverdueData = [
+        { memberId: "MEM0001", bookId: "BK1513", days: 0 },
+        { memberId: "MEM0002", bookId: "BK4045", days: 19 },
+        { memberId: "MEM0003", bookId: "BK1170", days: 22 },
+        { memberId: "MEM0004", bookId: "BK9422", days: 21 },
+        { memberId: "MEM0005", bookId: "BK6992", days: 0 },
+        { memberId: "MEM0006", bookId: "BK9840", days: 21 },
+        { memberId: "MEM0007", bookId: "BK9885", days: 19 },
+        { memberId: "MEM0200", bookId: "BK1054", days: 14 },   // Member 200 showcase
+        { memberId: "MEM0152", bookId: "BK1128", days: 8 },
+        { memberId: "MEM0881", bookId: "BK1155", days: 27 },
+        { memberId: "MEM0310", bookId: "BK1065", days: 4 },
+        { memberId: "MEM0456", bookId: "BK1106", days: 0 },
+        { memberId: "MEM0789", bookId: "BK1117", days: 12 },
+        { memberId: "MEM0999", bookId: "BK1157", days: 33 }
+    ];
+
+    // Chart static data (Format Distribution based on screenshots)
+    const xAxisLabels = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26];
+    const scienceData = [5, 8, 12, 9, 14, 18, 22, 19, 25, 30, 28, 35, 32, 40];
+    const selfHelpData = [12, 10, 8, 6, 9, 7, 5, 12, 14, 16, 18, 20, 15, 10];
+    const techData = [4, 6, 9, 11, 13, 15, 18, 20, 22, 24, 26, 28, 30, 27];
+
+    let chartFormat, chartOverdue;
+    let currentFilteredData = [...masterOverdueData];
+
+    // Helper: update dropdowns dynamically based on master data
+    function populateFilterDropdowns() {
+        const memberSet = new Set(masterOverdueData.map(d => d.memberId));
+        const bookSet = new Set(masterOverdueData.map(d => d.bookId));
+        const memberSelect = document.getElementById('filterMemberId');
+        const bookSelect = document.getElementById('filterBookId');
+        
+        memberSelect.innerHTML = '<option value="all">All Members</option>';
+        Array.from(memberSet).sort().forEach(m => { memberSelect.innerHTML += `<option value="${m}">${m}</option>`; });
+        
+        bookSelect.innerHTML = '<option value="all">All Books</option>';
+        Array.from(bookSet).sort().forEach(b => { bookSelect.innerHTML += `<option value="${b}">${b}</option>`; });
+    }
+
+    // Filter logic based on selected criteria
+    function applyFilters() {
+        const selectedMember = document.getElementById('filterMemberId').value;
+        const selectedBook = document.getElementById('filterBookId').value;
+        const selectedStatus = document.getElementById('filterStatus').value;
+        
+        let filtered = [...masterOverdueData];
+        
+        if (selectedMember !== 'all') {
+            filtered = filtered.filter(item => item.memberId === selectedMember);
+        }
+        if (selectedBook !== 'all') {
+            filtered = filtered.filter(item => item.bookId === selectedBook);
+        }
+        if (selectedStatus === 'overdue') {
+            filtered = filtered.filter(item => item.days > 0);
+        } else if (selectedStatus === 'ontime') {
+            filtered = filtered.filter(item => item.days === 0);
+        } else if (selectedStatus === 'critical') {
+            filtered = filtered.filter(item => item.days > 20);
+        }
+        
+        currentFilteredData = filtered;
+        updateKPIsAndTable();
+        updateOverdueChart();
+    }
+    
+    function resetFilters() {
+        document.getElementById('filterMemberId').value = 'all';
+        document.getElementById('filterBookId').value = 'all';
+        document.getElementById('filterStatus').value = 'all';
+        applyFilters(); // refresh with all data
+    }
+    
+    function updateKPIsAndTable() {
+        const filtered = currentFilteredData;
+        const totalMembers = new Set(filtered.map(i => i.memberId)).size;
+        const uniqueBooks = new Set(filtered.map(i => i.bookId)).size;
+        const overdueItems = filtered.filter(i => i.days > 0).length;
+        const sumDays = filtered.filter(i => i.days > 0).reduce((acc, cur) => acc + cur.days, 0);
+        const avg = overdueItems ? (sumDays / overdueItems).toFixed(1) : 0;
+        
+        document.getElementById('totalMembersCount').innerText = totalMembers + 180; // to represent ~200 active context
+        document.getElementById('uniqueFormatsCount').innerText = uniqueBooks + 34;
+        document.getElementById('overdueItemsCount').innerText = overdueItems;
+        document.getElementById('avgOverdueDays').innerText = (avg == 0 ? "0" : avg) + "d";
+        
+        // Render Table
+        const tbody = document.getElementById('overdueTableBody');
+        tbody.innerHTML = '';
+        if(filtered.length === 0) {
+            const row = tbody.insertRow();
+            row.colSpan = 4;
+            row.innerHTML = '<td colspan="4" style="text-align:center;">No records match filters</td>';
+        } else {
+            filtered.forEach(entry => {
+                const row = tbody.insertRow();
+                row.insertCell(0).innerHTML = `<strong>${entry.memberId}</strong>`;
+                row.insertCell(1).innerHTML = `<span style="background:#eef2ff; padding:0.2rem 0.7rem; border-radius:30px;">${entry.bookId}</span>`;
+                row.insertCell(2).innerText = entry.days;
+                let statusHtml = '';
+                if(entry.days === 0) statusHtml = '<span class="badge-overdue" style="background:#e0f2e0;color:#1f6e43;">On Time</span>';
+                else if(entry.days > 20) statusHtml = '<span class="badge-overdue" style="background:#ffddd6;">Critical 🔴</span>';
+                else statusHtml = '<span class="badge-overdue" style="background:#fff0db;">Pending ⚠️</span>';
+                row.insertCell(3).innerHTML = statusHtml;
+            });
+        }
+    }
+    
+    // Overdue Bar Chart (updates based on filtered data)
+    function updateOverdueChart() {
+        const ctx = document.getElementById('overdueBarCanvas').getContext('2d');
+        if(chartOverdue) chartOverdue.destroy();
+        const labels = currentFilteredData.map(item => item.memberId);
+        const daysData = currentFilteredData.map(item => item.days);
+        const bgColors = daysData.map(d => d > 20 ? '#e26d5c' : (d > 0 ? '#f4a261' : '#6cae75'));
+        chartOverdue = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ label: 'Days Overdue', data: daysData, backgroundColor: bgColors, borderRadius: 8, barPercentage: 0.6 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (ctx) => `${ctx.raw} days overdue` } } },
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Days' } }, x: { ticks: { rotation: 35, autoSkip: true } } }
+            }
+        });
+    }
+    
+    function initFormatChartStatic() {
+        const ctx = document.getElementById('bookFormatCanvas').getContext('2d');
+        if(chartFormat) chartFormat.destroy();
+        chartFormat = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: xAxisLabels.map(v => `IDx${v}`),
+                datasets: [
+                    { label: '📘 Science Collection', data: scienceData, borderColor: '#2c6e9e', backgroundColor: 'rgba(44,110,158,0.02)', tension: 0.3, fill: true, pointRadius: 3 },
+                    { label: '📗 Self-Help', data: selfHelpData, borderColor: '#9b6b9e', tension: 0.3, fill: true, backgroundColor: 'rgba(155,107,158,0.02)' },
+                    { label: '💡 Technology', data: techData, borderColor: '#e68a2e', tension: 0.3, fill: true }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+        });
+    }
+    
+    // Dashboard Load
+    function loadDashboardContent() {
+        populateFilterDropdowns();
+        currentFilteredData = [...masterOverdueData];
+        updateKPIsAndTable();
+        initFormatChartStatic();
+        updateOverdueChart();
+        const stored = sessionStorage.getItem('analyticsMemberId') || 'LIB-200';
+        document.getElementById('activeMemberName').innerHTML = `<i class="fas fa-id-badge"></i> <strong>${stored}</strong> (Analyst)`;
+    }
+    
+    // LOGIN LOGIC
+    function performLogin() {
+        const emailInput = document.getElementById('loginEmail').value.trim();
+        const passwordInput = document.getElementById('loginPassword').value.trim();
+        const errorDiv = document.getElementById('loginErrorMsg');
+        const validPassword = (passwordInput === "lib2025");
+        const validId = (emailInput === "librarian@libanalytics.com" || emailInput === "MEM0200" || emailInput === "200" || emailInput === "admin@lib.com");
+        if (!validPassword || !validId) {
+            errorDiv.style.display = 'block';
+            return;
+        }
+        errorDiv.style.display = 'none';
+        let displayName = emailInput;
+        if(emailInput === "librarian@libanalytics.com") displayName = "LIB-MASTER";
+        else if(emailInput === "MEM0200") displayName = "MEM0200 (Premium)";
+        else displayName = emailInput;
+        sessionStorage.setItem('analyticsMemberId', displayName);
+        document.getElementById('loginWrapper').style.display = 'none';
+        document.getElementById('dashboardApp').style.display = 'block';
+        loadDashboardContent();
+    }
+    
+    function logoutDashboard() {
+        sessionStorage.removeItem('analyticsMemberId');
+        document.getElementById('loginWrapper').style.display = 'flex';
+        document.getElementById('dashboardApp').style.display = 'none';
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        if(chartFormat) chartFormat.destroy();
+        if(chartOverdue) chartOverdue.destroy();
+    }
+    
+    document.getElementById('loginMainBtn').addEventListener('click', performLogin);
+    document.getElementById('logoutDashboardBtn').addEventListener('click', logoutDashboard);
+    document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
+    document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
+    
+    document.getElementById('loginEmail').addEventListener('keypress', (e) => { if(e.key === 'Enter') performLogin(); });
+    document.getElementById('loginPassword').addEventListener('keypress', (e) => { if(e.key === 'Enter') performLogin(); });
+    
+    if(sessionStorage.getItem('analyticsMemberId')) {
+        document.getElementById('loginWrapper').style.display = 'none';
+        document.getElementById('dashboardApp').style.display = 'block';
+        loadDashboardContent();
+    } else {
+        document.getElementById('loginWrapper').style.display = 'flex';
+        document.getElementById('dashboardApp').style.display = 'none';
+    }
+    
+    window.addEventListener('resize', () => {
+        if(document.getElementById('dashboardApp').style.display === 'block') {
+            if(chartFormat) chartFormat.resize();
+            if(chartOverdue) chartOverdue.resize();
+        }
+    });
+</script>
+</body>
+</html>
